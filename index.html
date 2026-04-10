@@ -749,7 +749,7 @@
     }
 
     document.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' && e.target === document.body) {
+      if (e.code === 'Space' && !e.target.matches('input, textarea, select')) {
         e.preventDefault();
         togglePlay();
         return;
