@@ -1321,8 +1321,8 @@
 
     lyricBlocks.forEach(b => {
       b.addEventListener('click', (e) => {
-        // Don't seek if clicking inside a note textarea
-        if (e.target.matches('textarea, button')) return;
+        // Don't seek if clicking inside a note bubble
+        if (e.target.closest('.note-bubble')) return;
         if (!audio.duration) return;
         audio.currentTime = getStart(b);
         autoScroll = true;
