@@ -700,8 +700,7 @@
 
     <div class="stem-selector">
       <button class="stem-btn active" data-stem="instrumental">instrumental</button>
-      <button class="stem-btn" data-stem="vocals">vocals (ref)</button>
-      <button class="stem-btn coming-soon" data-stem="nlh-vocals">nlh vocals (soon)</button>
+      <button class="stem-btn coming-soon" data-stem="vocals">vocals (soon)</button>
     </div>
   </section>
 
@@ -734,13 +733,13 @@
   </div>
 
   <div class="sc-embed" id="scEmbed">
-    <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F2298745901&color=%235a6880&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&secret_token=s-DHIZBP7OHAV"></iframe>
+    <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F2301506153&color=%235a6880&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&secret_token=s-qERZQqc7w4d"></iframe>
   </div>
 
   <div class="calibration-toast" id="calibToast"></div>
 
   <audio id="audio" preload="auto" src="/nlh77/instrumental.mp3"></audio>
-  <audio id="vocalsAudio" preload="auto" src="/nlh77/vocals-reference.mp3"></audio>
+  <!-- <audio id="vocalsAudio" preload="auto" src="/nlh77/vocals.mp3"></audio> -->
 
   <main class="lyrics-container" id="lyrics">
 
@@ -1004,55 +1003,18 @@
       document.getElementById('heroPlayText').textContent = playing ? 'Pause' : 'Play';
     }
 
-    // === Vocals reference layer ===
-    const vocalsAudio = document.getElementById('vocalsAudio');
-    let vocalsEnabled = false;
-
     function togglePlay() {
-      if (audio.paused) {
-        audio.play();
-        if (vocalsEnabled) {
-          vocalsAudio.currentTime = audio.currentTime;
-          vocalsAudio.play();
-        }
-      } else {
-        audio.pause();
-        vocalsAudio.pause();
-      }
+      if (audio.paused) audio.play();
+      else audio.pause();
       updatePlayState();
     }
 
     playBtn.addEventListener('click', togglePlay);
     heroPlayBtn.addEventListener('click', togglePlay);
 
-    // Keep vocals synced on seek
-    audio.addEventListener('seeked', () => {
-      if (vocalsEnabled) vocalsAudio.currentTime = audio.currentTime;
-    });
-
-    // === Stem selector ===
-    const stemLabel = document.querySelector('.player-title span');
-    document.querySelectorAll('.stem-btn:not(.coming-soon)').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const stem = btn.dataset.stem;
-
-        if (stem === 'vocals') {
-          // Toggle vocals layer on/off (additive, not exclusive)
-          btn.classList.toggle('active');
-          vocalsEnabled = btn.classList.contains('active');
-          if (vocalsEnabled && !audio.paused) {
-            vocalsAudio.currentTime = audio.currentTime;
-            vocalsAudio.play();
-          } else {
-            vocalsAudio.pause();
-          }
-          stemLabel.textContent = vocalsEnabled ? 'instrumental + vocals (ref)' : 'instrumental';
-        } else if (stem === 'instrumental') {
-          // Instrumental is always on — this button is just visual
-          btn.classList.add('active');
-        }
-      });
-    });
+    // === Stem selector (vocals coming soon) ===
+    // When vocals are ready: uncomment vocalsAudio element in HTML,
+    // add toggle logic here to layer vocals over instrumental
 
     // === MediaSession ===
     if ('mediaSession' in navigator) {
