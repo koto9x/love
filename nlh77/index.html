@@ -700,8 +700,9 @@
 
     <div class="stem-selector">
       <button class="stem-btn active" data-stem="instrumental">instrumental</button>
+      <button class="stem-btn" data-stem="original">original (DAZBEE)</button>
       <button class="stem-btn coming-soon" data-stem="vocals">vocals (soon)</button>
-      <a class="stem-btn" href="/nlh77/instrumental.mp3" download="TRIWTD-instrumental-N-skee.mp3" style="text-decoration:none">&#x2193; download</a>
+      <a class="stem-btn" href="/nlh77/instrumental.mp3" download="TRIWTD-instrumental-N-skee.mp3" style="text-decoration:none" id="downloadLink">&#x2193; download</a>
     </div>
   </section>
 
@@ -1172,9 +1173,35 @@
     playBtn.addEventListener('click', togglePlay);
     heroPlayBtn.addEventListener('click', togglePlay);
 
-    // === Stem selector (vocals coming soon) ===
-    // When vocals are ready: uncomment vocalsAudio element in HTML,
-    // add toggle logic here to layer vocals over instrumental
+    // === Stem selector ===
+    const stems = {
+      instrumental: '/nlh77/instrumental.mp3',
+      original: '/nlh77/original.mp3'
+    };
+    const stemLabel = document.querySelector('.player-title span');
+    const downloadLink = document.getElementById('downloadLink');
+
+    document.querySelectorAll('.stem-btn:not(.coming-soon)').forEach(btn => {
+      if (btn.tagName === 'A') return; // skip download link
+      btn.addEventListener('click', () => {
+        const stem = btn.dataset.stem;
+        if (!stems[stem]) return;
+
+        const wasPlaying = !audio.paused;
+        document.querySelectorAll('.stem-btn[data-stem]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        audio.src = stems[stem];
+        audio.load();
+        stemLabel.textContent = stem === 'original' ? 'original (DAZBEE)' : 'instrumental';
+        downloadLink.href = stems[stem];
+        downloadLink.download = stem === 'original' ? 'TRIWTD-original-DAZBEE.mp3' : 'TRIWTD-instrumental-N-skee.mp3';
+
+        if (wasPlaying) {
+          audio.play().then(updatePlayState);
+        }
+      });
+    });
 
     // === MediaSession ===
     if ('mediaSession' in navigator) {
