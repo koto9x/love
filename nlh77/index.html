@@ -418,6 +418,106 @@
       margin-bottom: 1.1rem;
       cursor: pointer;
       transition: opacity 0.4s ease;
+      position: relative;
+    }
+
+    /* Timecode */
+    .lyric-block .timecode {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.5rem;
+      color: var(--text-muted);
+      opacity: 0;
+      position: absolute;
+      left: -3.2rem;
+      top: 0.35rem;
+      transition: opacity 0.2s;
+      user-select: none;
+    }
+
+    body.show-timecodes .lyric-block .timecode {
+      opacity: 0.6;
+    }
+
+    body.show-timecodes .lyric-block.active .timecode {
+      opacity: 1;
+      color: var(--accent);
+    }
+
+    body.show-timecodes .lyrics-container {
+      padding-left: 5rem;
+    }
+
+    /* Notes */
+    .lyric-block .note-indicator {
+      position: absolute;
+      right: -1.2rem;
+      top: 0.3rem;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .lyric-block.has-note .note-indicator {
+      opacity: 0.6;
+    }
+
+    .lyric-block.has-note:hover .note-indicator {
+      opacity: 1;
+    }
+
+    .note-bubble {
+      margin-top: 0.4rem;
+      padding: 0.4rem 0.6rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      display: none;
+    }
+
+    .note-bubble.visible {
+      display: block;
+    }
+
+    .note-bubble textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.7rem;
+      line-height: 1.5;
+      resize: vertical;
+      min-height: 2rem;
+      outline: none;
+    }
+
+    .note-bubble textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    .note-bubble .note-meta {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.45rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .note-bubble .note-delete {
+      color: var(--text-muted);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-size: 0.45rem;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .note-bubble .note-delete:hover {
+      color: var(--accent);
     }
 
     .lyric-block .jp {
@@ -626,7 +726,10 @@
     <button class="active" data-lang="romaji">romaji</button>
     <button class="active" data-lang="english">english</button>
     <div class="controls-divider"></div>
-    <button id="swapBtn" title="Swap JP/EN position (keyboard: F)">&#x21C5; swap</button>
+    <button id="swapBtn" title="Swap JP/EN position (F)">&#x21C5; swap</button>
+    <button id="timecodeBtn" title="Show timecodes (G)">timecode</button>
+    <button id="notesBtn" title="Toggle notes (N)">notes</button>
+    <div class="controls-divider"></div>
     <button id="scToggle">soundcloud</button>
   </div>
 
@@ -978,11 +1081,114 @@
     }
     swapBtn.addEventListener('click', toggleSwap);
 
+    // === Timecodes ===
+    const timecodeBtn = document.getElementById('timecodeBtn');
+    function toggleTimecodes() {
+      document.body.classList.toggle('show-timecodes');
+      timecodeBtn.classList.toggle('active');
+    }
+    timecodeBtn.addEventListener('click', toggleTimecodes);
+
+    // Inject timecode elements into each lyric block
+    lyricBlocks.forEach((block, i) => {
+      const tc = document.createElement('div');
+      tc.className = 'timecode';
+      tc.textContent = formatTime(parseFloat(block.dataset.start));
+      block.prepend(tc);
+
+      // Note indicator dot
+      const dot = document.createElement('div');
+      dot.className = 'note-indicator';
+      block.appendChild(dot);
+
+      // Note bubble
+      const bubble = document.createElement('div');
+      bubble.className = 'note-bubble';
+      bubble.innerHTML = `<textarea placeholder="Add a note at ${formatTime(parseFloat(block.dataset.start))}..." rows="1"></textarea><div class="note-meta"><span class="note-tc">${formatTime(parseFloat(block.dataset.start))}</span><button class="note-delete">clear</button></div>`;
+      block.appendChild(bubble);
+    });
+
+    // === Notes system ===
+    const notesBtn = document.getElementById('notesBtn');
+    let notesMode = false;
+    const NOTES_KEY = 'nlh77-notes';
+
+    function loadNotes() {
+      try { return JSON.parse(localStorage.getItem(NOTES_KEY)) || {}; } catch { return {}; }
+    }
+
+    function saveNotes(notes) {
+      localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+    }
+
+    function toggleNotes() {
+      notesMode = !notesMode;
+      notesBtn.classList.toggle('active', notesMode);
+      // Show/hide all note bubbles that have content, or show empty ones in notes mode
+      lyricBlocks.forEach((block, i) => {
+        const bubble = block.querySelector('.note-bubble');
+        const textarea = bubble.querySelector('textarea');
+        const notes = loadNotes();
+        if (notesMode) {
+          bubble.classList.add('visible');
+        } else {
+          // Only keep visible if has content
+          bubble.classList.toggle('visible', !!textarea.value.trim());
+        }
+      });
+      // Also enable timecodes when notes are on
+      if (notesMode && !document.body.classList.contains('show-timecodes')) {
+        toggleTimecodes();
+      }
+    }
+    notesBtn.addEventListener('click', toggleNotes);
+
+    // Load saved notes
+    (function initNotes() {
+      const notes = loadNotes();
+      lyricBlocks.forEach((block, i) => {
+        const key = block.dataset.start;
+        const textarea = block.querySelector('.note-bubble textarea');
+        const bubble = block.querySelector('.note-bubble');
+        if (notes[key]) {
+          textarea.value = notes[key];
+          block.classList.add('has-note');
+          bubble.classList.add('visible');
+        }
+
+        // Save on input
+        textarea.addEventListener('input', () => {
+          const allNotes = loadNotes();
+          if (textarea.value.trim()) {
+            allNotes[key] = textarea.value;
+            block.classList.add('has-note');
+          } else {
+            delete allNotes[key];
+            block.classList.remove('has-note');
+          }
+          saveNotes(allNotes);
+        });
+
+        // Clear button
+        block.querySelector('.note-delete').addEventListener('click', () => {
+          textarea.value = '';
+          const allNotes = loadNotes();
+          delete allNotes[key];
+          saveNotes(allNotes);
+          block.classList.remove('has-note');
+          if (!notesMode) bubble.classList.remove('visible');
+        });
+      });
+    })();
+
     // === Keyboard ===
     let calibIndex = 0, calibTimeout;
 
     document.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' && !e.target.matches('input, textarea, select, button')) {
+      // Don't capture keys when typing in a note
+      if (e.target.matches('textarea')) return;
+
+      if (e.code === 'Space' && !e.target.matches('input, select, button')) {
         e.preventDefault();
         togglePlay();
         return;
@@ -1000,16 +1206,27 @@
         if (calibIndex < lyricBlocks.length) {
           const t = Math.round(audio.currentTime * 10) / 10;
           lyricBlocks[calibIndex].dataset.start = t;
+          // Update timecode display too
+          lyricBlocks[calibIndex].querySelector('.timecode').textContent = formatTime(t);
           showToast(`[${formatTime(audio.currentTime)}] line ${calibIndex + 1}/${lyricBlocks.length}`);
           calibIndex++;
         }
       }
       if (e.code === 'KeyF' && e.target === document.body) { e.preventDefault(); toggleSwap(); return; }
+      if (e.code === 'KeyG' && e.target === document.body) { e.preventDefault(); toggleTimecodes(); return; }
+      if (e.code === 'KeyN' && e.target === document.body) { e.preventDefault(); toggleNotes(); return; }
       if (e.code === 'KeyR' && e.shiftKey) { calibIndex = 0; showToast('calibration reset'); }
       if (e.code === 'KeyE' && e.shiftKey) {
-        console.log('=== TIMESTAMPS ===');
-        lyricBlocks.forEach(b => console.log(`data-start="${b.dataset.start}" → ${b.querySelector('.jp').textContent}`));
-        showToast('timestamps → console');
+        // Export timestamps + notes
+        const notes = loadNotes();
+        console.log('=== TIMESTAMPS + NOTES ===');
+        lyricBlocks.forEach(b => {
+          const tc = b.dataset.start;
+          const jp = b.querySelector('.jp').textContent;
+          const note = notes[tc] ? ` [NOTE: ${notes[tc]}]` : '';
+          console.log(`[${formatTime(parseFloat(tc))}] ${jp}${note}`);
+        });
+        showToast('timestamps + notes → console');
       }
     });
 
