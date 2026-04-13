@@ -599,7 +599,7 @@
 
   <div class="calibration-toast" id="calibToast"></div>
 
-  <audio id="audio" preload="auto"></audio>
+  <audio id="audio" preload="auto" src="instrumental.mp3"></audio>
 
   <main class="lyrics-container" id="lyrics">
 
@@ -864,20 +864,6 @@
     }
 
     function togglePlay() {
-      if (!audio.src && !audio.currentSrc) {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'audio/*';
-        input.onchange = (e) => {
-          const file = e.target.files[0];
-          if (file) {
-            audio.src = URL.createObjectURL(file);
-            audio.play().then(updatePlayState);
-          }
-        };
-        input.click();
-        return;
-      }
       if (audio.paused) audio.play();
       else audio.pause();
       updatePlayState();
