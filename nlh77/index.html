@@ -9,7 +9,29 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600&family=Noto+Serif+JP:wght@400;600&family=Space+Grotesk:wght@300;400;500&family=Space+Mono:wght@400&display=swap');
 
+    /* ===== LIGHT MODE (default) — ethereal, washed, cathedral white ===== */
     :root {
+      --bg: #fafafa;
+      --bg-elevated: #f0f0f2;
+      --surface: #e8e8ec;
+      --border: #dddde2;
+      --border-light: #d0d0d8;
+      --text: #1a1a1e;
+      --text-dim: #6b6b72;
+      --text-muted: #a0a0a8;
+      --accent: #5a6880;
+      --accent-soft: #7882a0;
+      --accent-dim: #b0b8cc;
+      --romaji: #6878a0;
+      --english: #9a9aa2;
+      --glow: rgba(90, 104, 128, 0.04);
+      --glow-strong: rgba(90, 104, 128, 0.08);
+      --player-bg: rgba(250, 250, 250, 0.92);
+      --btn-hover-text: #fafafa;
+    }
+
+    /* ===== DARK MODE ===== */
+    html.dark {
       --bg: #000000;
       --bg-elevated: #060608;
       --surface: #0e0e12;
@@ -21,11 +43,12 @@
       --accent: #b8c4e0;
       --accent-soft: #8892aa;
       --accent-dim: #3a4060;
-      --japanese: #e8e4e0;
       --romaji: #8892aa;
       --english: #5a5560;
       --glow: rgba(184, 196, 224, 0.06);
       --glow-strong: rgba(184, 196, 224, 0.12);
+      --player-bg: rgba(0, 0, 0, 0.92);
+      --btn-hover-text: #000000;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -38,13 +61,15 @@
       line-height: 1.7;
       min-height: 100vh;
       overflow-x: hidden;
+      transition: background 0.4s ease, color 0.4s ease;
     }
 
+    /* Grain — lighter in light mode */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
-      opacity: 0.02;
+      opacity: 0.015;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
       pointer-events: none;
       z-index: 1000;
@@ -58,8 +83,38 @@
       height: 1px;
       background: linear-gradient(90deg, transparent, var(--accent), transparent);
       z-index: 100;
-      opacity: 0.4;
+      opacity: 0.3;
     }
+
+    /* Theme toggle */
+    .theme-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 200;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-elevated);
+      color: var(--text-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .theme-toggle .icon-sun { display: block; }
+    .theme-toggle .icon-moon { display: none; }
+    html.dark .theme-toggle .icon-sun { display: none; }
+    html.dark .theme-toggle .icon-moon { display: block; }
 
     /* Hero */
     .hero {
@@ -67,7 +122,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 6rem 2rem 3rem;
+      padding: 5rem 2rem 2.5rem;
       text-align: center;
       overflow: hidden;
     }
@@ -75,12 +130,12 @@
     .hero::after {
       content: '';
       position: absolute;
-      top: 40%;
+      top: 30%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 500px;
-      height: 500px;
-      background: radial-gradient(circle, var(--glow-strong) 0%, transparent 65%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--glow-strong) 0%, transparent 60%);
       pointer-events: none;
       z-index: 0;
     }
@@ -89,7 +144,7 @@
 
     .collab-label {
       font-family: 'Space Mono', monospace;
-      font-size: 0.65rem;
+      font-size: 0.6rem;
       letter-spacing: 0.3em;
       text-transform: uppercase;
       color: var(--accent-soft);
@@ -102,60 +157,55 @@
       font-size: clamp(1.8rem, 4.5vw, 3rem);
       font-weight: 400;
       color: var(--text);
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
       line-height: 1.3;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
     }
 
     .title-romaji {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: clamp(0.8rem, 1.8vw, 1rem);
+      font-size: clamp(0.75rem, 1.6vw, 0.95rem);
       color: var(--accent-soft);
       font-weight: 300;
       letter-spacing: 0.02em;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.2rem;
     }
 
     .title-en {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: var(--text-muted);
       font-weight: 300;
       font-style: italic;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem;
     }
 
     .artists {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: var(--text-dim);
     }
 
-    .artists span {
-      color: var(--accent);
-    }
+    .artists span { color: var(--accent); }
 
     .original-credit {
       font-family: 'Space Mono', monospace;
-      font-size: 0.6rem;
+      font-size: 0.55rem;
       color: var(--text-muted);
-      margin-top: 0.5rem;
+      margin-top: 0.4rem;
       letter-spacing: 0.05em;
     }
 
     .hero-play {
-      position: relative;
-      margin-top: 2rem;
+      margin-top: 1.5rem;
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.6rem;
       background: transparent;
       border: 1.5px solid var(--accent-dim);
       color: var(--accent);
-      padding: 0.75rem 2rem 0.75rem 1.5rem;
+      padding: 0.65rem 1.75rem 0.65rem 1.25rem;
       border-radius: 50px;
       cursor: pointer;
       font-family: 'Space Mono', monospace;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       transition: all 0.25s ease;
@@ -163,28 +213,53 @@
 
     .hero-play:hover {
       background: var(--accent);
-      color: var(--bg);
+      color: var(--btn-hover-text);
       border-color: var(--accent);
       box-shadow: 0 0 30px var(--glow-strong);
     }
 
-    .hero-play svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .hero-play svg { width: 14px; height: 14px; flex-shrink: 0; }
     .hero-play.is-playing .hp-play { display: none; }
     .hero-play.is-playing .hp-pause { display: block; }
     .hero-play .hp-pause { display: none; }
 
-    .status-badge {
+    /* Stem selector */
+    .stem-selector {
+      display: flex;
+      gap: 0.4rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .stem-btn {
       font-family: 'Space Mono', monospace;
       font-size: 0.55rem;
-      letter-spacing: 0.15em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--accent-soft);
-      background: var(--surface);
+      padding: 0.3rem 0.7rem;
       border: 1px solid var(--border);
-      padding: 0.3rem 0.8rem;
       border-radius: 20px;
-      margin-top: 1rem;
-      opacity: 0.6;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .stem-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--glow);
+    }
+
+    .stem-btn.coming-soon {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    .stem-btn:not(.coming-soon):hover {
+      border-color: var(--accent-dim);
+      color: var(--accent-soft);
     }
 
     /* Player bar */
@@ -192,24 +267,25 @@
       position: sticky;
       top: 0;
       z-index: 50;
-      background: rgba(0, 0, 0, 0.92);
+      background: var(--player-bg);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
       border-bottom: 1px solid var(--border);
+      transition: background 0.4s ease;
     }
 
     .player-bar {
       max-width: 700px;
       margin: 0 auto;
-      padding: 0.65rem 2rem;
+      padding: 0.6rem 2rem;
       display: flex;
       align-items: center;
       gap: 0.75rem;
     }
 
     .play-btn {
-      width: 34px;
-      height: 34px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       border: 1.5px solid var(--accent-dim);
       background: transparent;
@@ -222,20 +298,20 @@
       flex-shrink: 0;
     }
 
-    .play-btn:hover { background: var(--accent); color: var(--bg); }
-    .play-btn svg { width: 13px; height: 13px; }
+    .play-btn:hover { background: var(--accent); color: var(--btn-hover-text); }
+    .play-btn svg { width: 12px; height: 12px; }
 
     .player-info { min-width: 0; }
 
     .player-title {
       font-family: 'Noto Sans JP', sans-serif;
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       font-weight: 400;
     }
 
     .player-time {
       font-family: 'Space Mono', monospace;
-      font-size: 0.6rem;
+      font-size: 0.55rem;
       color: var(--text-dim);
     }
 
@@ -255,22 +331,25 @@
       transition: width 0.1s linear;
     }
 
-    /* Language toggle */
-    .lang-toggle {
+    /* Controls row */
+    .controls-row {
       display: flex;
       justify-content: center;
+      align-items: center;
       gap: 0.25rem;
-      padding: 0.5rem 2rem;
+      padding: 0.4rem 2rem;
       background: var(--bg-elevated);
       border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      transition: background 0.4s ease;
     }
 
-    .lang-toggle button {
+    .controls-row button {
       font-family: 'Space Mono', monospace;
-      font-size: 0.6rem;
-      letter-spacing: 0.08em;
+      font-size: 0.55rem;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      padding: 0.35rem 0.75rem;
+      padding: 0.3rem 0.6rem;
       border: 1px solid var(--border);
       border-radius: 4px;
       background: transparent;
@@ -279,15 +358,22 @@
       transition: all 0.2s;
     }
 
-    .lang-toggle button.active {
+    .controls-row button.active {
       border-color: var(--accent-dim);
       color: var(--accent);
-      background: rgba(184, 196, 224, 0.05);
+      background: var(--glow);
     }
 
-    .lang-toggle button:hover {
+    .controls-row button:hover {
       border-color: var(--accent-dim);
       color: var(--accent-soft);
+    }
+
+    .controls-divider {
+      width: 1px;
+      height: 16px;
+      background: var(--border);
+      margin: 0 0.35rem;
     }
 
     /* Lyrics */
@@ -298,9 +384,9 @@
     }
 
     .verse {
-      margin-bottom: 3rem;
+      margin-bottom: 2.5rem;
       opacity: 0;
-      transform: translateY(16px);
+      transform: translateY(14px);
       animation: fadeIn 0.5s ease forwards;
     }
 
@@ -310,31 +396,31 @@
 
     .verse-label {
       font-family: 'Space Mono', monospace;
-      font-size: 0.6rem;
+      font-size: 0.55rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
       color: var(--accent-soft);
-      margin-bottom: 1rem;
-      opacity: 0.5;
+      margin-bottom: 0.75rem;
+      opacity: 0.45;
     }
 
     .verse-divider {
-      width: 24px;
+      width: 20px;
       height: 1px;
       background: var(--border-light);
-      margin: 3rem auto;
+      margin: 2.5rem auto;
     }
 
-    /* Lyric block — one per synced line */
+    /* Lyric block */
     .lyric-block {
-      margin-bottom: 1.25rem;
+      margin-bottom: 1.1rem;
       cursor: pointer;
       transition: opacity 0.4s ease;
     }
 
     .lyric-block .jp {
       font-family: 'Noto Serif JP', serif;
-      font-size: 1.3rem;
+      font-size: 1.25rem;
       font-weight: 400;
       color: var(--text-dim);
       line-height: 1.6;
@@ -343,59 +429,64 @@
     }
 
     .lyric-block .romaji {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.78rem;
+      font-size: 0.72rem;
       font-weight: 300;
       color: var(--romaji);
       line-height: 1.5;
-      margin-top: 0.15rem;
-      opacity: 0.6;
-      transition: opacity 0.4s ease;
+      margin-top: 0.12rem;
+      opacity: 0.55;
+      transition: opacity 0.4s, color 0.4s;
     }
 
     .lyric-block .en {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       font-weight: 300;
       color: var(--english);
       line-height: 1.5;
-      margin-top: 0.1rem;
+      margin-top: 0.08rem;
       font-style: italic;
-      transition: color 0.4s ease;
+      transition: color 0.4s;
     }
 
-    /* Active states */
     .lyric-block.active .jp {
       color: var(--text);
       text-shadow: 0 0 40px var(--glow-strong);
     }
-
-    .lyric-block.active .romaji {
-      opacity: 1;
-      color: var(--accent);
-    }
-
-    .lyric-block.active .en {
-      color: var(--text-dim);
-    }
+    .lyric-block.active .romaji { opacity: 1; color: var(--accent); }
+    .lyric-block.active .en { color: var(--text-dim); }
 
     .lyric-block.past .jp { color: var(--text-muted); }
-    .lyric-block.past .romaji { opacity: 0.3; }
-    .lyric-block.past .en { color: var(--text-muted); opacity: 0.5; }
+    .lyric-block.past .romaji { opacity: 0.25; }
+    .lyric-block.past .en { opacity: 0.4; }
 
     .lyric-block:hover .jp { color: var(--text); }
 
-    /* Language display modes */
+    /* Language visibility */
     body.hide-romaji .romaji { display: none; }
     body.hide-english .en { display: none; }
     body.hide-japanese .jp { display: none; }
     body.hide-japanese .romaji {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       opacity: 1;
       color: var(--text-dim);
     }
-    body.hide-japanese .lyric-block.active .romaji {
-      color: var(--text);
+    body.hide-japanese .lyric-block.active .romaji { color: var(--text); }
+
+    /* SoundCloud embed */
+    .sc-embed {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: none;
+    }
+
+    .sc-embed.visible {
+      display: block;
+    }
+
+    .sc-embed iframe {
+      border-radius: 8px;
+      border: 1px solid var(--border);
     }
 
     /* Calibration toast */
@@ -405,10 +496,10 @@
       left: 50%;
       transform: translateX(-50%);
       background: var(--accent);
-      color: var(--bg);
+      color: var(--btn-hover-text);
       font-family: 'Space Mono', monospace;
-      font-size: 0.7rem;
-      padding: 0.4rem 1rem;
+      font-size: 0.65rem;
+      padding: 0.35rem 0.8rem;
       border-radius: 4px;
       z-index: 200;
       opacity: 0;
@@ -417,29 +508,17 @@
     }
     .calibration-toast.show { opacity: 1; }
 
-    .calibrate-hint {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.55rem;
-      color: var(--text-muted);
-      text-align: center;
-      padding: 0.3rem;
-      letter-spacing: 0.05em;
-    }
-
     /* Footer */
     footer {
       text-align: center;
       padding: 2rem;
       font-family: 'Space Mono', monospace;
-      font-size: 0.6rem;
+      font-size: 0.55rem;
       color: var(--text-muted);
       border-top: 1px solid var(--border);
+      transition: border-color 0.4s;
     }
-
-    footer a {
-      color: var(--accent-dim);
-      text-decoration: none;
-    }
+    footer a { color: var(--accent-dim); text-decoration: none; }
     footer a:hover { color: var(--accent); }
 
     /* Scrollbar */
@@ -449,20 +528,25 @@
 
     /* Responsive */
     @media (max-width: 600px) {
-      .hero { padding: 4rem 1.25rem 2rem; }
-      .title-jp { font-size: 1.6rem; }
+      .hero { padding: 3.5rem 1.25rem 2rem; }
+      .title-jp { font-size: 1.5rem; }
       .lyrics-container { padding: 1.5rem 1.25rem 6rem; }
       .player-bar { padding: 0.5rem 1rem; gap: 0.5rem; }
-      .lyric-block .jp { font-size: 1.1rem; }
-      .lyric-block .romaji { font-size: 0.7rem; }
-      .lyric-block .en { font-size: 0.65rem; }
-      .lang-toggle { gap: 0.15rem; }
-      .lang-toggle button { padding: 0.3rem 0.5rem; font-size: 0.55rem; }
+      .lyric-block .jp { font-size: 1.05rem; }
+      .lyric-block .romaji { font-size: 0.65rem; }
+      .lyric-block .en { font-size: 0.6rem; }
+      .controls-row { padding: 0.35rem 1rem; }
+      .theme-toggle { top: 0.5rem; right: 0.5rem; width: 30px; height: 30px; font-size: 0.75rem; }
     }
   </style>
 </head>
 <body>
   <div class="top-line"></div>
+
+  <button class="theme-toggle" id="themeToggle" title="Toggle light/dark mode">
+    <span class="icon-sun">&#9788;</span>
+    <span class="icon-moon">&#9790;</span>
+  </button>
 
   <section class="hero">
     <div class="collab-label">nolongerhuman77 &times; n.skee</div>
@@ -471,12 +555,18 @@
     <div class="title-en">The Reason Why I Thought I'd Die</div>
     <p class="artists"><span>nolongerhuman77</span> &middot; prod. <span>n.skee</span></p>
     <p class="original-credit">original by Mika Nakashima (中島美嘉) &middot; written by amazarashi</p>
+
     <button class="hero-play" id="heroPlayBtn">
       <svg class="hp-play" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 21,12 6,21"/></svg>
       <svg class="hp-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="3" width="4" height="18"/><rect x="15" y="3" width="4" height="18"/></svg>
       <span id="heroPlayText">Play</span>
     </button>
-    <div class="status-badge">instrumental &middot; vocals coming soon</div>
+
+    <div class="stem-selector">
+      <button class="stem-btn active" data-stem="instrumental">instrumental</button>
+      <button class="stem-btn coming-soon" data-stem="vocals">vocals (soon)</button>
+      <button class="stem-btn coming-soon" data-stem="full">full mix (soon)</button>
+    </div>
   </section>
 
   <div class="player-bar-outer">
@@ -486,25 +576,29 @@
         <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="5" y="3" width="4" height="18"/><rect x="15" y="3" width="4" height="18"/></svg>
       </button>
       <div class="player-info">
-        <div class="player-title">僕が死のうと思ったのは</div>
+        <div class="player-title">僕が死のうと思ったのは <span style="font-family:'Space Mono';font-size:0.5rem;color:var(--text-muted)">instrumental</span></div>
         <div class="player-time"><span id="currentTime">0:00</span> / <span id="totalTime">--:--</span></div>
       </div>
       <div class="progress-bar" id="progressBar">
         <div class="progress-fill" id="progressFill"></div>
       </div>
     </div>
-    <div class="calibrate-hint">T = calibrate timestamps &middot; space = play/pause</div>
   </div>
 
-  <div class="lang-toggle">
+  <div class="controls-row">
     <button class="active" data-lang="japanese">漢字</button>
     <button class="active" data-lang="romaji">romaji</button>
     <button class="active" data-lang="english">english</button>
+    <div class="controls-divider"></div>
+    <button id="scToggle">soundcloud</button>
+  </div>
+
+  <div class="sc-embed" id="scEmbed">
+    <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F2298745901&color=%235a6880&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&secret_token=s-DHIZBP7OHAV"></iframe>
   </div>
 
   <div class="calibration-toast" id="calibToast"></div>
 
-  <!-- Audio: replace src with actual file when ready -->
   <audio id="audio" preload="auto"></audio>
 
   <main class="lyrics-container" id="lyrics">
@@ -713,6 +807,25 @@
   </footer>
 
   <script>
+    // === Theme toggle ===
+    const themeToggle = document.getElementById('themeToggle');
+    const savedTheme = localStorage.getItem('nlh77-theme');
+    if (savedTheme === 'dark') document.documentElement.classList.add('dark');
+
+    themeToggle.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('nlh77-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    // === SoundCloud toggle ===
+    const scToggle = document.getElementById('scToggle');
+    const scEmbed = document.getElementById('scEmbed');
+    scToggle.addEventListener('click', () => {
+      scToggle.classList.toggle('active');
+      scEmbed.classList.toggle('visible');
+    });
+
+    // === Audio ===
     const audio = document.getElementById('audio');
     const playBtn = document.getElementById('playBtn');
     const heroPlayBtn = document.getElementById('heroPlayBtn');
@@ -725,7 +838,6 @@
     const calibToast = document.getElementById('calibToast');
     const lyricBlocks = document.querySelectorAll('.lyric-block');
 
-    // Timing — will be replaced by Whisper-derived values once vocals are recorded
     const TIMING_SCALE = 1.0;
     const TIMING_OFFSET = 0;
 
@@ -753,7 +865,6 @@
 
     function togglePlay() {
       if (!audio.src && !audio.currentSrc) {
-        // No audio loaded — prompt for file
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'audio/*';
@@ -767,18 +878,24 @@
         input.click();
         return;
       }
-      if (audio.paused) {
-        audio.play();
-      } else {
-        audio.pause();
-      }
+      if (audio.paused) audio.play();
+      else audio.pause();
       updatePlayState();
     }
 
     playBtn.addEventListener('click', togglePlay);
     heroPlayBtn.addEventListener('click', togglePlay);
 
-    // MediaSession
+    // === Stem selector ===
+    document.querySelectorAll('.stem-btn:not(.coming-soon)').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.stem-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        // When stems are added, switch audio.src here
+      });
+    });
+
+    // === MediaSession ===
     if ('mediaSession' in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: '僕が死のうと思ったのは',
@@ -787,22 +904,21 @@
       });
       navigator.mediaSession.setActionHandler('play', () => { audio.play(); updatePlayState(); });
       navigator.mediaSession.setActionHandler('pause', () => { audio.pause(); updatePlayState(); });
-      navigator.mediaSession.setActionHandler('seekbackward', () => { audio.currentTime = Math.max(0, audio.currentTime - 10); });
-      navigator.mediaSession.setActionHandler('seekforward', () => { audio.currentTime = Math.min(audio.duration, audio.currentTime + 10); });
     }
 
-    // Language toggles
-    document.querySelectorAll('.lang-toggle button').forEach(btn => {
+    // === Language toggles ===
+    document.querySelectorAll('[data-lang]').forEach(btn => {
       btn.addEventListener('click', () => {
         btn.classList.toggle('active');
-        const lang = btn.dataset.lang;
-        document.body.classList.toggle(`hide-${lang}`, !btn.classList.contains('active'));
+        document.body.classList.toggle(`hide-${btn.dataset.lang}`, !btn.classList.contains('active'));
       });
     });
 
-    // Keyboard
+    // === Keyboard ===
+    let calibIndex = 0, calibTimeout;
+
     document.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' && !e.target.matches('input, textarea, select')) {
+      if (e.code === 'Space' && !e.target.matches('input, textarea, select, button')) {
         e.preventDefault();
         togglePlay();
         return;
@@ -815,90 +931,66 @@
         e.preventDefault();
         audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 3);
       }
-      // Calibration
       if (e.code === 'KeyT' && e.target === document.body && !audio.paused) {
         e.preventDefault();
         if (calibIndex < lyricBlocks.length) {
           const t = Math.round(audio.currentTime * 10) / 10;
           lyricBlocks[calibIndex].dataset.start = t;
-          calibToast.textContent = `[${formatTime(audio.currentTime)}] line ${calibIndex + 1}/${lyricBlocks.length}`;
-          calibToast.classList.add('show');
-          clearTimeout(calibTimeout);
-          calibTimeout = setTimeout(() => calibToast.classList.remove('show'), 1200);
+          showToast(`[${formatTime(audio.currentTime)}] line ${calibIndex + 1}/${lyricBlocks.length}`);
           calibIndex++;
         }
       }
-      if (e.code === 'KeyR' && e.shiftKey && e.target === document.body) {
-        e.preventDefault();
-        calibIndex = 0;
-        calibToast.textContent = 'calibration reset';
-        calibToast.classList.add('show');
-        clearTimeout(calibTimeout);
-        calibTimeout = setTimeout(() => calibToast.classList.remove('show'), 1200);
-      }
-      if (e.code === 'KeyE' && e.shiftKey && e.target === document.body) {
-        e.preventDefault();
+      if (e.code === 'KeyR' && e.shiftKey) { calibIndex = 0; showToast('calibration reset'); }
+      if (e.code === 'KeyE' && e.shiftKey) {
         console.log('=== TIMESTAMPS ===');
-        lyricBlocks.forEach((b, i) => console.log(`data-start="${b.dataset.start}" → ${b.querySelector('.jp').textContent}`));
-        calibToast.textContent = 'timestamps exported to console';
-        calibToast.classList.add('show');
-        clearTimeout(calibTimeout);
-        calibTimeout = setTimeout(() => calibToast.classList.remove('show'), 1200);
+        lyricBlocks.forEach(b => console.log(`data-start="${b.dataset.start}" → ${b.querySelector('.jp').textContent}`));
+        showToast('timestamps → console');
       }
     });
 
-    let calibIndex = 0;
-    let calibTimeout;
+    function showToast(msg) {
+      calibToast.textContent = msg;
+      calibToast.classList.add('show');
+      clearTimeout(calibTimeout);
+      calibTimeout = setTimeout(() => calibToast.classList.remove('show'), 1200);
+    }
 
-    // Progress bar seek
+    // === Progress bar ===
     progressBar.addEventListener('click', (e) => {
       if (!audio.duration) return;
-      const rect = progressBar.getBoundingClientRect();
-      audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+      audio.currentTime = ((e.clientX - progressBar.getBoundingClientRect().left) / progressBar.offsetWidth) * audio.duration;
     });
 
-    // Sync lyrics
-    let lastActiveIndex = -1;
+    // === Sync ===
+    let lastActive = -1;
 
     function syncLyrics() {
       const t = audio.currentTime;
       currentTimeEl.textContent = formatTime(t);
-      if (audio.duration) {
-        progressFill.style.width = `${(t / audio.duration) * 100}%`;
-      }
+      if (audio.duration) progressFill.style.width = `${(t / audio.duration) * 100}%`;
 
-      let activeIndex = -1;
+      let idx = -1;
       for (let i = lyricBlocks.length - 1; i >= 0; i--) {
-        if (t >= getStart(lyricBlocks[i])) {
-          activeIndex = i;
-          break;
-        }
+        if (t >= getStart(lyricBlocks[i])) { idx = i; break; }
       }
 
-      if (activeIndex !== lastActiveIndex) {
+      if (idx !== lastActive) {
         lyricBlocks.forEach((b, i) => {
           b.classList.remove('active', 'past');
-          if (i === activeIndex) b.classList.add('active');
-          else if (i < activeIndex) b.classList.add('past');
+          if (i === idx) b.classList.add('active');
+          else if (i < idx) b.classList.add('past');
         });
-        if (activeIndex >= 0) {
-          lyricBlocks[activeIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        lastActiveIndex = activeIndex;
+        if (idx >= 0) lyricBlocks[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        lastActive = idx;
       }
 
       if (!audio.paused) requestAnimationFrame(syncLyrics);
     }
 
     audio.addEventListener('play', () => requestAnimationFrame(syncLyrics));
-    audio.addEventListener('seeked', () => { lastActiveIndex = -1; syncLyrics(); });
-    audio.addEventListener('ended', () => {
-      updatePlayState();
-      lyricBlocks.forEach(b => b.classList.remove('active', 'past'));
-      lastActiveIndex = -1;
-    });
+    audio.addEventListener('seeked', () => { lastActive = -1; syncLyrics(); });
+    audio.addEventListener('ended', () => { updatePlayState(); lyricBlocks.forEach(b => b.classList.remove('active', 'past')); lastActive = -1; });
 
-    // Click lyric to seek
     lyricBlocks.forEach(b => {
       b.addEventListener('click', () => {
         if (!audio.duration) return;
@@ -907,14 +999,11 @@
       });
     });
 
-    // Fade-in observer
-    const observer = new IntersectionObserver((entries) => {
+    // Fade-in
+    const observer = new IntersectionObserver(entries => {
       entries.forEach(e => { if (e.isIntersecting) e.target.style.animationPlayState = 'running'; });
     }, { threshold: 0.1 });
-    document.querySelectorAll('.verse').forEach(v => {
-      v.style.animationPlayState = 'paused';
-      observer.observe(v);
-    });
+    document.querySelectorAll('.verse').forEach(v => { v.style.animationPlayState = 'paused'; observer.observe(v); });
   </script>
 </body>
 </html>
