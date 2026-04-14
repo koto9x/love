@@ -597,6 +597,7 @@
       font-size: 0.78rem;
       color: var(--text-muted);
       order: 1;
+    }
 
     /* Romaji primary mode — romaji on top for singing */
     body.romaji-primary .lyric-block {
@@ -2069,7 +2070,6 @@
 
     // === Sync button ===
     const syncBtn = document.getElementById('syncBtn');
-    console.log('[init] syncBtn:', syncBtn);
 
     function showSyncBtn() {
       syncBtn.style.opacity = '1';
@@ -2107,7 +2107,6 @@
       if (!visible && !syncBtn.classList.contains('visible')) {
         autoScroll = false;
         showSyncBtn();
-        console.log('[sync] SHOWING sync button — active line off screen');
       } else if (visible && syncBtn.classList.contains('visible') && autoScroll) {
         hideSyncBtn();
       }
@@ -2127,7 +2126,6 @@
       }
 
       if (idx !== lastActive) {
-        console.log('[sync] line changed:', idx, 'autoScroll:', autoScroll, 'blocks:', lyricBlocks.length);
         lyricBlocks.forEach((b, i) => {
           b.classList.remove('active', 'past');
           if (i === idx) b.classList.add('active');
@@ -2163,8 +2161,6 @@
     // Initialize BOTH lyrics containers (timecodes, notes, click handlers)
     const instrBlocks = document.querySelectorAll('#lyrics-instrumental .lyric-block');
     const origBlocks = document.querySelectorAll('#lyrics-original .lyric-block');
-    console.log('[init] instrumental blocks:', instrBlocks.length, 'original blocks:', origBlocks.length);
-    console.log('[init] active lyricBlocks:', lyricBlocks.length, 'currentStem:', currentStem);
     initLyricBlocks(instrBlocks);
     initLyricBlocks(origBlocks);
 
