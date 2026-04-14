@@ -91,11 +91,11 @@
     /* Theme toggle */
     .theme-toggle {
       position: fixed;
-      top: 1rem;
-      right: 1rem;
-      z-index: 200;
-      width: 36px;
-      height: 36px;
+      top: 0.5rem;
+      right: 0.5rem;
+      z-index: 60;
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
       border: 1px solid var(--border);
       background: var(--bg-elevated);
@@ -1952,7 +1952,12 @@
         autoScroll = true;
         programmaticScroll = true;
         syncBtn.classList.remove('visible');
-        if (lastActive >= 0) lyricBlocks[lastActive].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Scroll to current active line and force re-sync
+        if (lastActive >= 0) {
+          lyricBlocks[lastActive].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        // Reset lastActive so the sync loop re-triggers scroll on next frame
+        lastActive = -2;
         setTimeout(() => { programmaticScroll = false; }, 600);
         return;
       }
@@ -2019,6 +2024,7 @@
       if (lastActive >= 0) {
         lyricBlocks[lastActive].scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
+      lastActive = -2;
       setTimeout(() => { programmaticScroll = false; }, 600);
     });
 
@@ -2083,7 +2089,8 @@
       });
     });
 
-    // Pre-initialize original lyrics container (timecodes, notes, click handlers)
+    // Initialize BOTH lyrics containers (timecodes, notes, click handlers)
+    initLyricBlocks(document.querySelectorAll('#lyrics-instrumental .lyric-block'));
     initLyricBlocks(document.querySelectorAll('#lyrics-original .lyric-block'));
 
     // Fade-in
