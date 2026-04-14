@@ -1950,8 +1950,10 @@
       if (e.code === 'KeyS' && e.target === document.body) {
         e.preventDefault();
         autoScroll = true;
+        programmaticScroll = true;
         syncBtn.classList.remove('visible');
         if (lastActive >= 0) lyricBlocks[lastActive].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => { programmaticScroll = false; }, 600);
         return;
       }
       if (e.code === 'KeyF' && e.target === document.body) { e.preventDefault(); toggleSwap(); return; }
@@ -2012,21 +2014,29 @@
 
     syncBtn.addEventListener('click', () => {
       autoScroll = true;
+      programmaticScroll = true;
       syncBtn.classList.remove('visible');
       if (lastActive >= 0) {
         lyricBlocks[lastActive].scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
+      setTimeout(() => { programmaticScroll = false; }, 600);
     });
 
     // === Sync ===
     let lastActive = -1;
     let autoScroll = true;
+    let programmaticScroll = false;
+    let scrollDebounce;
 
     // Detect manual scrolling — pause auto-scroll
     window.addEventListener('scroll', () => {
+      if (programmaticScroll) return; // ignore our own scrollIntoView
       if (!audio.paused) {
-        autoScroll = false;
-        syncBtn.classList.add('visible');
+        clearTimeout(scrollDebounce);
+        scrollDebounce = setTimeout(() => {
+          autoScroll = false;
+          syncBtn.classList.add('visible');
+        }, 50);
       }
     }, { passive: true });
 
@@ -2047,7 +2057,9 @@
           else if (i < idx) b.classList.add('past');
         });
         if (idx >= 0 && autoScroll) {
+          programmaticScroll = true;
           lyricBlocks[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => { programmaticScroll = false; }, 600);
         }
         lastActive = idx;
       }
