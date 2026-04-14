@@ -435,12 +435,14 @@
     }
 
     body.show-timecodes .lyric-block .timecode {
-      opacity: 0.6;
+      opacity: 1;
+      color: var(--accent);
     }
 
     body.show-timecodes .lyric-block.active .timecode {
       opacity: 1;
-      color: var(--accent);
+      color: var(--active-highlight);
+      font-weight: 600;
     }
 
     body.show-timecodes .lyrics-container {
@@ -657,6 +659,66 @@
       border: 1px solid var(--border);
     }
 
+    /* Emotional arc */
+    .arc-panel {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.4s ease;
+    }
+
+    .arc-panel.visible {
+      max-height: 400px;
+    }
+
+    .arc-inner {
+      padding: 1rem 0 0.5rem;
+      position: relative;
+    }
+
+    .arc-canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .arc-playhead {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--accent);
+      opacity: 0.6;
+      left: 0%;
+      transition: left 0.3s linear;
+      pointer-events: none;
+    }
+
+    .arc-zones {
+      display: flex;
+      gap: 2px;
+      margin-top: 0.4rem;
+    }
+
+    .arc-zone {
+      flex: 1;
+      padding: 0.25rem 0.4rem;
+      border-radius: 3px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.45rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      text-align: center;
+      opacity: 0.5;
+      transition: opacity 0.3s;
+    }
+
+    .arc-zone.active-zone {
+      opacity: 1;
+    }
+
     /* Sync button */
     #syncBtn {
       position: fixed;
@@ -846,7 +908,22 @@
     <button id="exportBtn" title="Download notes as JSON" style="display:none">save</button>
     <button id="importBtn" title="Import notes from JSON" style="display:none">load</button>
     <div class="controls-divider"></div>
+    <button id="arcToggle">arc</button>
     <button id="scToggle">soundcloud</button>
+  </div>
+
+  <div class="arc-panel" id="arcPanel">
+    <div class="arc-inner">
+      <canvas class="arc-canvas" id="arcCanvas" width="680" height="200"></canvas>
+      <div class="arc-playhead" id="arcPlayhead"></div>
+    </div>
+    <div class="arc-zones">
+      <div class="arc-zone" style="background:rgba(240,153,123,0.15);color:#F0997B;flex:2.8" data-zone="peach">peach — beach</div>
+      <div class="arc-zone" style="background:rgba(180,178,169,0.1);color:#B4B2A9;flex:0.7" data-zone="grey">transition</div>
+      <div class="arc-zone" style="background:rgba(226,75,74,0.15);color:#E24B4A;flex:1.6" data-zone="red">red — city</div>
+      <div class="arc-zone" style="background:rgba(93,202,165,0.12);color:#5DCAA5;flex:1.2" data-zone="cyan">cyan — room</div>
+      <div class="arc-zone" style="background:rgba(24,95,165,0.15);color:#185FA5;flex:3.7" data-zone="navy">navy — pivot</div>
+    </div>
   </div>
 
   <div class="sc-embed" id="scEmbed"></div>
@@ -1527,6 +1604,7 @@
       <kbd>&#x2190;</kbd> <kbd>&#x2192;</kbd> seek -3s / +3s<br>
       <kbd>S</kbd> sync — jump to current line<br>
       <kbd>F</kbd> cycle layout: default / romaji / english<br>
+      <kbd>A</kbd> emotional arc<br>
       <kbd>G</kbd> toggle timecodes<br>
       <kbd>N</kbd> toggle notes mode<br>
       <kbd>K</kbd> this guide<br>
@@ -1553,6 +1631,139 @@
       document.documentElement.classList.toggle('dark');
       localStorage.setItem('nlh77-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
     });
+
+    // === Emotional arc ===
+    const arcToggle = document.getElementById('arcToggle');
+    const arcPanel = document.getElementById('arcPanel');
+    const arcCanvas = document.getElementById('arcCanvas');
+    const arcPlayhead = document.getElementById('arcPlayhead');
+
+    arcToggle.addEventListener('click', () => {
+      arcToggle.classList.toggle('active');
+      arcPanel.classList.toggle('visible');
+      if (arcPanel.classList.contains('visible') && !arcCanvas._drawn) {
+        drawArc();
+        arcCanvas._drawn = true;
+      }
+    });
+
+    function drawArc() {
+      const ctx = arcCanvas.getContext('2d');
+      const W = 680, H = 200;
+
+      // Color zones (background bands)
+      const zones = [
+        { x: 0, w: 0.28, color: '#F0997B', alpha: 0.08 },
+        { x: 0.28, w: 0.07, color: '#B4B2A9', alpha: 0.05 },
+        { x: 0.35, w: 0.16, color: '#E24B4A', alpha: 0.08 },
+        { x: 0.51, w: 0.12, color: '#5DCAA5', alpha: 0.08 },
+        { x: 0.63, w: 0.37, color: '#185FA5', alpha: 0.08 }
+      ];
+
+      zones.forEach(z => {
+        ctx.fillStyle = z.color;
+        ctx.globalAlpha = z.alpha;
+        ctx.fillRect(z.x * W, 0, z.w * W, H);
+      });
+      ctx.globalAlpha = 1;
+
+      // Verse positions (x = position in song, y = emotional depth, 0=hope 1=despair)
+      const verses = [
+        { x: 0.07, y: 0.28, jp: '桟橋', en: 'Pier' },
+        { x: 0.14, y: 0.35, jp: '杏', en: 'Blossoms' },
+        { x: 0.22, y: 0.42, jp: '雨', en: 'Rain' },
+        { x: 0.31, y: 0.52, jp: '空', en: 'Empty' },
+        { x: 0.39, y: 0.64, jp: '靴紐', en: 'Laces' },
+        { x: 0.46, y: 0.72, jp: '少年', en: 'Boy' },
+        { x: 0.56, y: 0.85, jp: '鳥籠', en: 'Cage' },
+        { x: 0.66, y: 0.72, jp: '温もり', en: 'Warmth' },
+        { x: 0.76, y: 0.45, jp: '笑う', en: 'Laugh' },
+        { x: 0.90, y: 0.18, jp: '好き', en: 'Hope' }
+      ];
+
+      const margin = 15;
+      const curveH = H - margin * 2;
+      const pts = verses.map(v => ({ x: v.x * W, y: margin + v.y * curveH }));
+
+      // Draw curve
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x - 15, margin + 0.22 * curveH);
+      for (let i = 0; i < pts.length; i++) {
+        if (i === 0) { ctx.lineTo(pts[0].x, pts[0].y); }
+        else {
+          const prev = pts[i - 1], curr = pts[i];
+          const cpx = prev.x + (curr.x - prev.x) * 0.5;
+          ctx.bezierCurveTo(cpx, prev.y, cpx, curr.y, curr.x, curr.y);
+        }
+      }
+      ctx.lineTo(pts[pts.length - 1].x + 15, margin + 0.12 * curveH);
+
+      const isDark = document.documentElement.classList.contains('dark');
+      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Dots and labels
+      const zoneColors = i => i < 3 ? '#F0997B' : i === 3 ? '#B4B2A9' : i < 6 ? '#E24B4A' : i === 6 ? '#5DCAA5' : '#185FA5';
+
+      verses.forEach((v, i) => {
+        const px = v.x * W, py = margin + v.y * curveH;
+
+        ctx.beginPath();
+        ctx.arc(px, py, 3, 0, Math.PI * 2);
+        ctx.fillStyle = zoneColors(i);
+        ctx.fill();
+
+        const above = py > H * 0.5;
+        const ty = above ? py - 10 : py + 16;
+
+        ctx.font = '500 11px "Noto Sans JP", sans-serif';
+        ctx.fillStyle = isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)';
+        ctx.textAlign = 'center';
+        ctx.fillText(v.jp, px, ty);
+
+        ctx.font = '400 8px "Space Grotesk", sans-serif';
+        ctx.fillStyle = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)';
+        ctx.fillText(v.en, px, ty + 12);
+      });
+
+      // Axis labels
+      ctx.font = '400 9px "Space Mono", monospace';
+      ctx.fillStyle = isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)';
+      ctx.textAlign = 'left';
+      ctx.fillText('hope', 4, 14);
+      ctx.fillText('despair', 4, H - 6);
+
+      // Pivot line
+      const pivotX = verses[8].x * W;
+      ctx.setLineDash([2, 3]);
+      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(pivotX, 0);
+      ctx.lineTo(pivotX, H);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.font = 'italic 8px "Space Grotesk", sans-serif';
+      ctx.fillStyle = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.2)';
+      ctx.textAlign = 'center';
+      ctx.fillText('the pivot', pivotX, 10);
+    }
+
+    // Update playhead position during playback
+    function updateArcPlayhead() {
+      if (!arcPanel.classList.contains('visible') || !audio.duration) return;
+      const pct = (audio.currentTime / audio.duration) * 100;
+      arcPlayhead.style.left = pct + '%';
+
+      // Highlight active zone
+      const zones = document.querySelectorAll('.arc-zone');
+      const zoneBreaks = [0, 28, 35, 51, 63, 100]; // percentages matching the zone widths
+      zones.forEach((z, i) => {
+        z.classList.toggle('active-zone', pct >= zoneBreaks[i] && pct < zoneBreaks[i + 1]);
+      });
+    }
 
     // === SoundCloud toggle ===
     const scToggle = document.getElementById('scToggle');
@@ -2037,6 +2248,7 @@
         return;
       }
       if ((e.code === 'KeyF' || (e.code === 'KeyR' && !e.shiftKey)) && e.target === document.body) { e.preventDefault(); cycleLayout(); return; }
+      if (e.code === 'KeyA' && e.target === document.body) { e.preventDefault(); arcToggle.click(); return; }
       if (e.code === 'KeyG' && e.target === document.body) { e.preventDefault(); toggleTimecodes(); return; }
       if (e.code === 'KeyN' && e.target === document.body) { e.preventDefault(); toggleNotes(); return; }
       if (e.code === 'Escape') {
@@ -2139,6 +2351,7 @@
         lastActive = idx;
       }
 
+      updateArcPlayhead();
       if (!audio.paused) requestAnimationFrame(syncLyrics);
     }
 
