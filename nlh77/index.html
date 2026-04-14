@@ -656,6 +656,41 @@
       border: 1px solid var(--border);
     }
 
+    /* Sync button */
+    #syncBtn {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.6rem 1.5rem;
+      border-radius: 50px;
+      border: 1.5px solid var(--accent);
+      background: var(--bg-elevated);
+      color: var(--accent);
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s, background 0.2s;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+    #syncBtn.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #syncBtn:hover {
+      background: var(--accent);
+      color: var(--btn-hover-text);
+    }
+
     /* Keyboard shortcuts overlay */
     .shortcuts-overlay {
       position: fixed;
@@ -817,9 +852,7 @@
     <button id="scToggle">soundcloud</button>
   </div>
 
-  <div class="sc-embed" id="scEmbed">
-    <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F2301506153&color=%235a6880&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&secret_token=s-qERZQqc7w4d"></iframe>
-  </div>
+  <div class="sc-embed" id="scEmbed"></div>
 
   <div class="calibration-toast" id="calibToast"></div>
 
@@ -1530,6 +1563,9 @@
     scToggle.addEventListener('click', () => {
       scToggle.classList.toggle('active');
       scEmbed.classList.toggle('visible');
+      if (scEmbed.classList.contains('visible') && !scEmbed.innerHTML.trim()) {
+        scEmbed.innerHTML = '<iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F2301506153&color=%235a6880&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&secret_token=s-qERZQqc7w4d"></iframe>';
+      }
     });
 
     // === Audio ===
@@ -2054,26 +2090,8 @@
     const syncBtn = document.createElement('button');
     syncBtn.id = 'syncBtn';
     syncBtn.innerHTML = '&#x2193; sync';
-    syncBtn.style.cssText = `
-      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); z-index: 200;
-      font-family: 'Space Mono', monospace; font-size: 0.65rem;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      padding: 0.6rem 1.5rem; border-radius: 50px;
-      border: 1.5px solid var(--accent); background: var(--bg-elevated);
-      color: var(--accent); cursor: pointer;
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.3s, background 0.2s, transform 0.3s;
-      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-    `;
     document.body.appendChild(syncBtn);
     console.log('[init] syncBtn created and appended to body');
-    const syncStyle = document.createElement('style');
-    syncStyle.textContent = `
-      #syncBtn.visible { opacity: 1; pointer-events: auto; }
-      #syncBtn:hover { background: var(--accent); color: var(--btn-hover-text); }
-    `;
-    document.head.appendChild(syncStyle);
 
     syncBtn.addEventListener('click', () => {
       autoScroll = true;
@@ -2099,10 +2117,12 @@
       if (!el) return;
       const rect = el.getBoundingClientRect();
       const visible = rect.top >= 0 && rect.bottom <= window.innerHeight;
-      if (!visible && autoScroll) {
-        // User scrolled away — disable auto-scroll, show sync
+      if (!visible && !syncBtn.classList.contains('visible')) {
         autoScroll = false;
         syncBtn.classList.add('visible');
+        console.log('[sync] SHOWING sync button — active line off screen');
+      } else if (visible && syncBtn.classList.contains('visible') && autoScroll) {
+        syncBtn.classList.remove('visible');
       }
     }
 
