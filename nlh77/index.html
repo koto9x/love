@@ -625,6 +625,55 @@
       border: 1px solid var(--border);
     }
 
+    /* Keyboard shortcuts overlay */
+    .shortcuts-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .shortcuts-overlay.visible { display: flex; }
+
+    .shortcuts-box {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem 2rem;
+      max-width: 360px;
+      width: 90%;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text-dim);
+      line-height: 2.2;
+    }
+
+    .shortcuts-box h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    .shortcuts-box kbd {
+      display: inline-block;
+      padding: 0.15rem 0.4rem;
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: 3px;
+      font-size: 0.55rem;
+      color: var(--accent);
+      min-width: 1.4rem;
+      text-align: center;
+    }
+
     /* Calibration toast */
     .calibration-toast {
       position: fixed;
@@ -1408,6 +1457,23 @@
 
   </main>
 
+  <div class="shortcuts-overlay" id="shortcutsOverlay" onclick="if(event.target===this)this.classList.remove('visible')">
+    <div class="shortcuts-box">
+      <h3>Keyboard Shortcuts</h3>
+      <kbd>Space</kbd> play / pause<br>
+      <kbd>&#x2190;</kbd> <kbd>&#x2192;</kbd> seek -3s / +3s<br>
+      <kbd>F</kbd> swap JP / EN position<br>
+      <kbd>G</kbd> toggle timecodes<br>
+      <kbd>N</kbd> toggle notes mode<br>
+      <kbd>K</kbd> this guide<br>
+      <br>
+      <span style="color:var(--text-muted)">— calibration —</span><br>
+      <kbd>T</kbd> stamp current line (while playing)<br>
+      <kbd>Shift</kbd>+<kbd>R</kbd> reset calibration<br>
+      <kbd>Shift</kbd>+<kbd>E</kbd> export notes as JSON<br>
+    </div>
+  </div>
+
   <footer>
     <p><a href="/">love.kaios.chat</a></p>
     <p style="margin-top: 0.3rem; opacity: 0.5;">2026</p>
@@ -1883,6 +1949,15 @@
       if (e.code === 'KeyF' && e.target === document.body) { e.preventDefault(); toggleSwap(); return; }
       if (e.code === 'KeyG' && e.target === document.body) { e.preventDefault(); toggleTimecodes(); return; }
       if (e.code === 'KeyN' && e.target === document.body) { e.preventDefault(); toggleNotes(); return; }
+      if (e.code === 'Escape') {
+        document.getElementById('shortcutsOverlay').classList.remove('visible');
+        return;
+      }
+      if (e.code === 'KeyK' && e.target === document.body) {
+        e.preventDefault();
+        document.getElementById('shortcutsOverlay').classList.toggle('visible');
+        return;
+      }
       if (e.code === 'KeyR' && e.shiftKey) { calibIndex = 0; showToast('calibration reset'); }
       if (e.code === 'KeyE' && e.shiftKey) {
         e.preventDefault();
@@ -1903,21 +1978,7 @@
       audio.currentTime = ((e.clientX - progressBar.getBoundingClientRect().left) / progressBar.offsetWidth) * audio.duration;
     });
 
-    // === Sync ===
-    let lastActive = -1;
-    let autoScroll = true;
-    let userScrollTimeout;
-
-    // Detect manual scrolling — pause auto-scroll
-    window.addEventListener('scroll', () => {
-      if (!audio.paused) {
-        autoScroll = false;
-        syncBtn.classList.add('visible');
-        clearTimeout(userScrollTimeout);
-      }
-    }, { passive: true });
-
-    // Sync button — jump back to current line
+    // === Sync button (created early so initLyricBlocks can reference it) ===
     const syncBtn = document.createElement('button');
     syncBtn.id = 'syncBtn';
     syncBtn.innerHTML = '&#x2193; sync';
@@ -1934,8 +1995,6 @@
       box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     `;
     document.body.appendChild(syncBtn);
-
-    // Style for visible state
     const syncStyle = document.createElement('style');
     syncStyle.textContent = `
       #syncBtn.visible { opacity: 1; pointer-events: auto; }
@@ -1950,6 +2009,18 @@
         lyricBlocks[lastActive].scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     });
+
+    // === Sync ===
+    let lastActive = -1;
+    let autoScroll = true;
+
+    // Detect manual scrolling — pause auto-scroll
+    window.addEventListener('scroll', () => {
+      if (!audio.paused) {
+        autoScroll = false;
+        syncBtn.classList.add('visible');
+      }
+    }, { passive: true });
 
     function syncLyrics() {
       const t = audio.currentTime;
