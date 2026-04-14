@@ -839,8 +839,7 @@
     <button class="active" data-lang="romaji">romaji</button>
     <button class="active" data-lang="english">english</button>
     <div class="controls-divider"></div>
-    <button id="swapBtn" title="Swap JP/EN position (F)">&#x21C5; swap</button>
-    <button id="romajiBtn" title="Romaji primary for singing (R)">romaji &#x2191;</button>
+    <button id="swapBtn" title="Cycle layout: default → romaji → english (F)">&#x21C5; swap</button>
     <button id="timecodeBtn" title="Show timecodes (G)">timecode</button>
     <button id="notesBtn" title="Toggle notes (N)">notes</button>
     <button id="exportBtn" title="Download notes as JSON" style="display:none">save</button>
@@ -851,7 +850,7 @@
 
   <div class="sc-embed" id="scEmbed"></div>
 
-  <button id="syncBtn">&#x2193; sync</button>
+  <button id="syncBtn" style="position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);z-index:9999;font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.7rem 2rem;border-radius:50px;border:2px solid var(--accent);background:var(--bg);color:var(--accent);cursor:pointer;opacity:0;pointer-events:none;">SYNC</button>
   <div class="calibration-toast" id="calibToast"></div>
 
   <audio id="audio" preload="auto" src="original.mp3"></audio>
@@ -1526,8 +1525,7 @@
       <kbd>Space</kbd> play / pause<br>
       <kbd>&#x2190;</kbd> <kbd>&#x2192;</kbd> seek -3s / +3s<br>
       <kbd>S</kbd> sync — jump to current line<br>
-      <kbd>R</kbd> romaji primary (for singing)<br>
-      <kbd>F</kbd> swap JP / EN position<br>
+      <kbd>F</kbd> cycle layout: default / romaji / english<br>
       <kbd>G</kbd> toggle timecodes<br>
       <kbd>N</kbd> toggle notes mode<br>
       <kbd>K</kbd> this guide<br>
@@ -1682,7 +1680,7 @@
           if (!audio.duration) return;
           audio.currentTime = getStart(block);
           autoScroll = true;
-          syncBtn.classList.remove('visible');
+          hideSyncBtn();
           if (audio.paused) togglePlay();
         });
       });
@@ -1758,36 +1756,22 @@
       });
     });
 
-    // === Layout modes: swap (EN top) and romaji primary ===
+    // === Layout mode: cycle default → romaji → english → default ===
     const swapBtn = document.getElementById('swapBtn');
-    const romajiBtn = document.getElementById('romajiBtn');
+    const layoutModes = ['default', 'romaji-primary', 'swapped'];
+    const layoutLabels = ['&#x21C5; swap', '&#x21C5; romaji', '&#x21C5; english'];
+    let layoutIndex = 0;
 
-    function clearLayoutModes() {
+    function cycleLayout() {
       document.body.classList.remove('swapped', 'romaji-primary');
-      swapBtn.classList.remove('active');
-      romajiBtn.classList.remove('active');
+      layoutIndex = (layoutIndex + 1) % layoutModes.length;
+      const mode = layoutModes[layoutIndex];
+      if (mode !== 'default') document.body.classList.add(mode);
+      swapBtn.innerHTML = layoutLabels[layoutIndex];
+      swapBtn.classList.toggle('active', mode !== 'default');
     }
 
-    function toggleSwap() {
-      const wasActive = document.body.classList.contains('swapped');
-      clearLayoutModes();
-      if (!wasActive) {
-        document.body.classList.add('swapped');
-        swapBtn.classList.add('active');
-      }
-    }
-
-    function toggleRomajiPrimary() {
-      const wasActive = document.body.classList.contains('romaji-primary');
-      clearLayoutModes();
-      if (!wasActive) {
-        document.body.classList.add('romaji-primary');
-        romajiBtn.classList.add('active');
-      }
-    }
-
-    swapBtn.addEventListener('click', toggleSwap);
-    romajiBtn.addEventListener('click', toggleRomajiPrimary);
+    swapBtn.addEventListener('click', cycleLayout);
 
     // === Timecodes ===
     const timecodeBtn = document.getElementById('timecodeBtn');
@@ -2041,7 +2025,7 @@
         e.preventDefault();
         autoScroll = true;
         programmaticScroll = true;
-        syncBtn.classList.remove('visible');
+        hideSyncBtn();
         // Scroll to current active line and force re-sync
         if (lastActive >= 0) {
           lyricBlocks[lastActive].scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -2051,8 +2035,7 @@
         setTimeout(() => { programmaticScroll = false; }, 600);
         return;
       }
-      if (e.code === 'KeyR' && !e.shiftKey && e.target === document.body) { e.preventDefault(); toggleRomajiPrimary(); return; }
-      if (e.code === 'KeyF' && e.target === document.body) { e.preventDefault(); toggleSwap(); return; }
+      if ((e.code === 'KeyF' || (e.code === 'KeyR' && !e.shiftKey)) && e.target === document.body) { e.preventDefault(); cycleLayout(); return; }
       if (e.code === 'KeyG' && e.target === document.body) { e.preventDefault(); toggleTimecodes(); return; }
       if (e.code === 'KeyN' && e.target === document.body) { e.preventDefault(); toggleNotes(); return; }
       if (e.code === 'Escape') {
@@ -2088,10 +2071,19 @@
     const syncBtn = document.getElementById('syncBtn');
     console.log('[init] syncBtn:', syncBtn);
 
+    function showSyncBtn() {
+      syncBtn.style.opacity = '1';
+      syncBtn.style.pointerEvents = 'auto';
+    }
+    function hideSyncBtn() {
+      syncBtn.style.opacity = '0';
+      syncBtn.style.pointerEvents = 'none';
+    }
+
     syncBtn.addEventListener('click', () => {
       autoScroll = true;
       programmaticScroll = true;
-      syncBtn.classList.remove('visible');
+      hideSyncBtn();
       if (lastActive >= 0) {
         lyricBlocks[lastActive].scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
@@ -2114,10 +2106,10 @@
       const visible = rect.top >= 0 && rect.bottom <= window.innerHeight;
       if (!visible && !syncBtn.classList.contains('visible')) {
         autoScroll = false;
-        syncBtn.classList.add('visible');
+        showSyncBtn();
         console.log('[sync] SHOWING sync button — active line off screen');
       } else if (visible && syncBtn.classList.contains('visible') && autoScroll) {
-        syncBtn.classList.remove('visible');
+        hideSyncBtn();
       }
     }
 
@@ -2152,9 +2144,9 @@
       if (!audio.paused) requestAnimationFrame(syncLyrics);
     }
 
-    audio.addEventListener('play', () => { autoScroll = true; syncBtn.classList.remove('visible'); requestAnimationFrame(syncLyrics); });
-    audio.addEventListener('seeked', () => { lastActive = -1; autoScroll = true; syncBtn.classList.remove('visible'); syncLyrics(); });
-    audio.addEventListener('ended', () => { updatePlayState(); lyricBlocks.forEach(b => b.classList.remove('active', 'past')); lastActive = -1; autoScroll = true; syncBtn.classList.remove('visible'); });
+    audio.addEventListener('play', () => { autoScroll = true; hideSyncBtn(); requestAnimationFrame(syncLyrics); });
+    audio.addEventListener('seeked', () => { lastActive = -1; autoScroll = true; hideSyncBtn(); syncLyrics(); });
+    audio.addEventListener('ended', () => { updatePlayState(); lyricBlocks.forEach(b => b.classList.remove('active', 'past')); lastActive = -1; autoScroll = true; hideSyncBtn(); });
 
     lyricBlocks.forEach(b => {
       b.addEventListener('click', (e) => {
@@ -2163,7 +2155,7 @@
         if (!audio.duration) return;
         audio.currentTime = getStart(b);
         autoScroll = true;
-        syncBtn.classList.remove('visible');
+        hideSyncBtn();
         if (audio.paused) togglePlay();
       });
     });
