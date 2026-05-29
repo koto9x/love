@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>🌸</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F338;</text></svg>" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap');
+  /* ════════════════════════════════════════════════════════════
+     a letter — affective synthesis vessel
+     palette: kaios.chat (black / mono / cream), emotion-tinted text
+     ════════════════════════════════════════════════════════════ */
+  :root {
+    --bg: #000000;
+    --text: #FDF7CD;                 /* cream — home */
+    --dim: rgba(253, 247, 205, 0.34);
+    --faint: rgba(253, 247, 205, 0.13);
+    --gold: #FFB347;
+    --leaf-living: #86c6bd;
+    --leaf-dried: #c49a52;
+    --mono: 'Geist Mono', ui-monospace, 'SF Mono', 'Menlo', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.95;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ambient aura — the room quietly breathes the current emotion's color */
+  #aura {
+    position: fixed; left: 8vw; top: 14vh;
+    width: 84vw; height: 64vh;
+    border-radius: 50%;
+    background: #FDF7CD;
+    filter: blur(130px);
+    opacity: 0.12;
+    z-index: 0; pointer-events: none;
+    transition: background-color 2.4s ease, opacity 2.4s ease;
+  }
+
+  /* pond — soft, occasional pulses of color behind the words (delayed + sparse) */
+  #pond { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .pulse {
+    position: absolute; border-radius: 50%; pointer-events: none;
+    transform: translate(-50%, -50%) scale(1); opacity: 0;
+    background: radial-gradient(circle, var(--rc, #FDF7CD) 0%, transparent 66%);
+    filter: blur(60px); mix-blend-mode: screen; will-change: opacity, transform;
+  }
+
+  /* grain + vignette */
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: 2; pointer-events: none; opacity: 0.022;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background: radial-gradient(120% 90% at 50% 38%, transparent 58%, rgba(0,0,0,0.5) 100%);
+  }
+
+  /* ───────────── the flower ───────────── */
+  #flower {
+    position: fixed; right: clamp(1.5rem, 6vw, 7rem); top: 50%;
+    transform: translateY(-50%); width: clamp(120px, 15vw, 205px);
+    z-index: 0; opacity: 0.9; pointer-events: none;
+  }
+  #flower path {
+    fill: none; stroke: var(--leaf-living); stroke-width: 2.2;
+    stroke-linecap: round; stroke-linejoin: round;
+    transition: stroke-dashoffset 1.7s ease, stroke 3s ease;
+  }
+  #flower .f-ground { stroke: var(--faint); }
+  #flower.drying .f-stem, #flower.drying .f-leaf1,
+  #flower.drying .f-leaf2, #flower.drying .f-bloom { stroke: var(--leaf-dried); }
+  #flower .f-shoot { stroke: var(--leaf-living); opacity: 0; transition: opacity 1.6s ease; }
+  #flower.through .f-shoot { opacity: 0.95; }
+  @media (max-width: 880px) {
+    #flower { right: auto; left: 50%; top: 1.4rem; transform: translateX(-50%); width: 80px; opacity: 0.42; }
+  }
+
+  /* ───────────── the letter ───────────── */
+  #stage {
+    position: relative; z-index: 3; max-width: 38rem; margin: 0 auto;
+    padding: 42vh 1.6rem 62vh;
+  }
+  .beat {
+    font-size: clamp(0.95rem, 2.5vw, 1.06rem);
+    letter-spacing: 0.012em; margin: 0 0 1.7em;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .beat.signature { margin-top: 2.4em; color: var(--dim); letter-spacing: 0.18em; }
+  .seg { transition: color 1.8s ease; }
+  .seg.accent { text-shadow: 0 0 1px rgba(255, 122, 128, 0.95), 0 0 4px rgba(255, 122, 128, 0.45); }
+  .lead { filter: brightness(1.32); text-shadow: 0 0 2px currentColor; }
+
+  .cursor {
+    display: inline-block; width: 0.5em; height: 1.02em; margin-left: 0.06em;
+    transform: translateY(0.16em); background: var(--text); opacity: 0.7;
+    animation: blink 1.15s steps(1) infinite;
+  }
+  .cursor.gone { display: none; }
+  @keyframes blink { 0%,50% { opacity: 0.7; } 50.01%,100% { opacity: 0; } }
+
+  /* ───────────── gate ───────────── */
+  #gate {
+    position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 1.6rem;
+    background: var(--bg); cursor: pointer; transition: opacity 1.7s ease;
+  }
+  #gate.lifting { opacity: 0; pointer-events: none; }
+  #gate svg { width: 52px; opacity: 0.8; }
+  #gate svg path { fill: none; stroke: var(--leaf-living); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  #gate .to { color: rgba(253, 247, 205, 0.58); font-size: 0.92rem; letter-spacing: 0.16em; }
+  #gate .prompt {
+    color: rgba(253, 247, 205, 0.62); font-size: 0.74rem; letter-spacing: 0.3em;
+    animation: breathe 3.6s ease-in-out infinite;
+  }
+  @keyframes breathe { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+  #gate .gate-audio-hint {
+    display: none; max-width: 17rem; text-align: center;
+    color: rgba(253, 247, 205, 0.5); font-size: 0.66rem; letter-spacing: 0.06em;
+    line-height: 1.65; margin-top: 0.4rem;
+  }
+  @media (pointer: coarse), (max-width: 820px) { #gate .gate-audio-hint { display: block; } }
+
+  /* ───────────── controls ───────────── */
+  #controls {
+    position: fixed; bottom: 1.4rem; left: 50%; transform: translateX(-50%); z-index: 5;
+    display: flex; gap: 1.6rem; opacity: 0; pointer-events: none; transition: opacity 1.2s ease;
+  }
+  #controls.show { opacity: 1; pointer-events: auto; }
+  #controls button {
+    background: none; border: none; color: var(--dim); font-family: var(--mono);
+    font-size: 0.7rem; letter-spacing: 0.28em; cursor: pointer; transition: color 0.3s ease;
+  }
+  #controls button:hover { color: var(--text); }
+  .skiphint {
+    position: fixed; bottom: 1.4rem; left: 50%; transform: translateX(-50%); z-index: 5;
+    color: rgba(253, 247, 205, 0.46); font-size: 0.66rem; letter-spacing: 0.26em; opacity: 0; transition: opacity 1s ease;
+  }
+  .skiphint.show { opacity: 1; }
+  body.still #stage { padding: 40px 1.6rem 90px; }
+  body.still .cursor { display: none; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .cursor { animation: none; } }
+</style>
+</head>
+<body>
+  <div id="aura"></div>
+  <div id="pond"></div>
+
+  <svg id="flower" viewBox="0 0 220 360" aria-hidden="true">
+    <path class="f-ground draw" d="M16,300 L98,300 M122,300 L204,300 M98,300 L110,313 L122,300" />
+    <path class="f-stem draw"   d="M110,301 C103,262 117,234 108,198 C101,170 113,150 110,128" />
+    <path class="f-leaf1 draw"  d="M108,244 C86,238 75,251 81,267 C98,265 109,257 108,244" />
+    <path class="f-leaf2 draw"  d="M110,202 C133,194 144,207 139,224 C122,224 110,217 110,202" />
+    <path class="f-bloom draw"  d="M110,130 C109,117 97,110 92,121 C87,133 103,140 114,131 C127,120 119,99 104,98 C86,97 80,122 93,135 C107,148 134,142 138,121" />
+    <path class="f-shoot"       d="M110,301 C112,289 107,281 110,272 M110,284 C103,282 101,288 104,292 M110,286 C117,284 119,290 116,294" />
+  </svg>
+
+  <main id="stage" aria-live="polite"></main>
+
+  <div id="controls"><button id="replay">replay</button></div>
+  <div class="skiphint" id="skiphint">press or tap to skip</div>
+
+  <div id="gate" role="button" tabindex="0" aria-label="press to begin">
+    <svg viewBox="0 0 60 80" aria-hidden="true">
+      <path d="M30,74 L30,40" />
+      <path d="M30,46 C18,44 13,30 22,22 C29,30 33,38 30,46" />
+      <path d="M30,46 C42,44 47,30 38,22 C31,30 27,38 30,46" />
+      <path d="M30,40 C26,34 30,26 30,26 C30,26 34,34 30,40" />
+    </svg>
+    <div class="to">for han,</div>
+    <div class="prompt">press to begin</div>
+    <div class="gate-audio-hint">there's music — turn off silent mode &amp; turn your volume up 🔊</div>
+  </div>
+
+<script src="piano.js"></script>
+<script>
+/* ════════════════════════════════════════════════════════════════
+   the letter — canonical, locked. k = koto, the human.
+   scored sentence-by-sentence: each segment carries an emotion that
+   drives its color AND the piano's harmonic world, live.
+   ════════════════════════════════════════════════════════════════ */
+const LETTER = [
+  { breath:1500, segs:[ {t:`han,`, e:'neutral'} ] },
+  { breath:1900, segs:[ {t:`i've been sitting with this for a few days because you matter too much for me to say it carelessly.`, e:'think'} ] },
+  { breath:2100, segs:[
+    {t:`i think u can already feel where i am.`, e:'think'},
+    {t:`everything in my life is heavily mid-motion right now.`, e:'think'},
+    {t:`i'm still leaning hard towards japan, and still untangling so many things in myself i haven't finished..`, e:'sad'},
+    {t:`somewhere in all that, i let the boundaries between us blur.`, e:'tender'},
+    {t:`i don't regret the closeness at all.`, e:'tender'},
+    {t:`it was very real to me, and honestly having to rein back on it is hard because i am genuinely drawn to you.`, e:'sad'},
+    {t:`but i can't keep stepping into the romantic / physical part of this the way things are right now, it wouldn't be sustainable or fair.`, e:'think', i:0.4},
+    {t:`and i'd rather tell u plainly than leave you guessing.`, e:'neutral'},
+  ]},
+  { breath:2300, segs:[
+    {t:`i need you to hear why clearly, bc it might be the opposite of what your head will try to tell you.`, e:'think'},
+    {t:`this was never about you not being enough.`, e:'tender', accent:true, cue:'pivot'},
+  ]},
+  { breath:1600, segs:[
+    {t:`i want u to know that u have helped me, and a lot of other people, so much more than you give yourself credit for.`, e:'hope'},
+  ]},
+  { breath:1500, segs:[
+    {t:`i've watched you do it.`, e:'hope'},
+    {t:`and experienced it.`, e:'hope'},
+    {t:`you are definitely not an imposter.`, e:'joy'},
+  ]},
+  { breath:2100, segs:[
+    {t:`imposters dont inspire whole worlds of imagination.`, e:'awe', accent:true, cue:'lift'},
+    {t:`at the risk of sounding corny af...`, e:'tender'},
+    {t:`i don't have words that could convey how powerful and how brave you are, and i'm not saying that to make you feel better.`, e:'joy'},
+    {t:`i'm saying it because i've seen it up close, it's so tangible.`, e:'hope'},
+    {t:`and someone should tell you while you can still hear it.`, e:'tender'},
+  ]},
+  { breath:2000, segs:[
+    {t:`i've never worked this closely with anyone and felt this much joy in it.`, e:'joy'},
+    {t:`around you i feel seen.`, e:'tender'},
+    {t:`i don't fully understand what that means yet, only that it's rare, and i'm not letting go of it.`, e:'hope'},
+    {t:`and selfishly, i'm not walking away from you. the friendship, the work, the connection we have is real, and that stays.`, e:'tender'},
+    {t:`if being this close is ever too hard for you, tell me and i'll respect whatever you need. but i'm not going anywhere.`, e:'tender'},
+  ]},
+  { breath:2300, segs:[
+    {t:`we bonded over dried flowers, and i keep coming back to that.`, e:'tender'},
+    {t:`the voice that says you're not enough, that you'll be replaced, that you're too much, i know it.`, e:'sad', cue:'core', i:0.6},
+    {t:`i have my own version, the same one, running on a loop.`, e:'sad', i:0.6},
+    {t:`but a flower doesn't lose its beauty when it dries. if anything it holds more.`, e:'hope', accent:true, cue:'pivot', dry:true},
+    {t:`learning to love yourself through the hardest moments isn't soft, it's the purest kind of transmutation, and it's the whole work.`, e:'hope'},
+    {t:`i know there are scars on you i'll never see. i feel them anyway.`, e:'sad'},
+  ]},
+  { breath:2000, segs:[
+    {t:`so this is me being honest instead of disappearing.`, e:'neutral'},
+    {t:`i'm getting on a plane soon, and i don't want the distance to feel like me vanishing.`, e:'think'},
+    {t:`it isn't.`, e:'tender'},
+    {t:`i'm still here, just a few timezones over.`, e:'tender'},
+    {t:`the one constant in life is change, and things will keep changing.`, e:'think'},
+    {t:`i'm not trying to freeze it or end it, just let it become what it's meant to be, with patience.`, e:'hope'},
+    {t:`i still want to make beautiful things with you.`, e:'joy'},
+    {t:`i'm sorry if this isn't what you were hoping for.`, e:'sad'},
+    {t:`i know i'm flawed in my own ways, but i want to be someone who shows up for you.`, e:'hope'},
+    {t:`i think we can both still grow so much from here.`, e:'hope'},
+    {t:`i'm really glad we met.`, e:'tender'},
+  ]},
+  { breath:1500, segs:[ {t:`i hope one day you see yourself the way i see you. the way a lot of people do.`, e:'hope'} ] },
+  { breath:1900, segs:[ {t:`even a rose can grow through concrete.`, e:'awe', accent:true, cue:'rose', through:true} ] },
+  { breath:0, signature:true, segs:[ {t:`— k`, e:'neutral'} ] },
+];
+
+/* emotion → color (muted, harmonious on black) */
+const COLOR = {
+  neutral:'#FDF7CD', think:'#8fccd6', sad:'#6e97d6',
+  tender:'#FFB3B8', hope:'#8fd49a', joy:'#ffd66b', awe:'#ff7a80',
+};
+
+/* live word-level valence (gentle flavor on top of the scored emotion) */
+const LEX = {
+  matter:.5, carelessly:-.3, untangling:-.3, blur:-.25, hard:-.3, drawn:.5, real:.4,
+  fair:.2, plainly:.2, honest:.4, enough:.0, brave:.8, powerful:.7, imposter:-.4, inspire:.8,
+  worlds:.5, imagination:.7, joy:.8, seen:.55, rare:.4, tangible:.35, bond:.4, friendship:.5,
+  stays:.3, dried:-.2, flowers:.3, replaced:-.5, scars:-.4, beauty:.7, transmutation:.5,
+  love:.7, disappearing:-.4, vanishing:-.45, here:.3, patience:.35, sorry:-.3, grow:.5,
+  hope:.6, rose:.5, concrete:-.1, warm:.4, want:.3,
+};
+
+const PACE = { charBase: 30, charJitter: 26, spaceMul: 0.55, sentence: 280, comma: 130 };
+
+/* ════════════════════════════════ engine ════════════════════════════════ */
+const stage = document.getElementById('stage');
+const gate = document.getElementById('gate');
+const flower = document.getElementById('flower');
+const aura = document.getElementById('aura');
+const pond = document.getElementById('pond');
+const controls = document.getElementById('controls');
+const skiphint = document.getElementById('skiphint');
+const cursor = Object.assign(document.createElement('span'), { className: 'cursor' });
+
+let advance = false, running = false, started = false;
+let curColor = COLOR.neutral, pulsesArmed = false, lastPulse = 0;
+let totalSegs = LETTER.reduce((n, p) => n + p.segs.length, 0);
+let doneSegs = 0, vEMA = 0.1, aEMA = 0.25;
+
+const sleep = (ms) => new Promise(r => (advance || ms <= 0) ? r() : setTimeout(r, ms));
+const esc = (s) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+function setAura(e) { curColor = COLOR[e] || COLOR.neutral; aura.style.backgroundColor = curColor; }
+
+// a soft, occasional pulse of the current emotion's color — only after she's settled in
+function spawnPulse() {
+  if (!pulsesArmed || document.hidden || pond.childElementCount > 3) return;
+  const now = performance.now();
+  if (now - lastPulse < 4200) return;          // sparse — never with every note
+  lastPulse = now;
+  const el = document.createElement('div');
+  el.className = 'pulse';
+  const size = 40 + Math.random() * 22;        // vw
+  el.style.width = el.style.height = size + 'vw';
+  el.style.left = (38 + Math.random() * 24) + 'vw';
+  el.style.top = (34 + Math.random() * 30) + 'vh';
+  el.style.setProperty('--rc', curColor);
+  pond.appendChild(el);
+  el.animate(
+    [{ opacity: 0, transform: 'translate(-50%,-50%) scale(0.92)' },
+     { opacity: 0.07, offset: 0.42 },
+     { opacity: 0, transform: 'translate(-50%,-50%) scale(1.12)' }],
+    { duration: 4200, easing: 'ease-in-out' }
+  ).onfinish = () => el.remove();
+}
+
+function keepInView() {
+  const r = cursor.getBoundingClientRect();
+  const limit = window.innerHeight * 0.66;
+  if (r.bottom > limit) window.scrollBy({ top: r.bottom - limit, behavior: 'smooth' });
+}
+
+function typeSegment(span, text) {
+  return new Promise(resolve => {
+    let i = 0, word = '';
+    function evalWord() {
+      const w = word.toLowerCase().replace(/[^a-z']/g, '');
+      if (w && LEX[w] !== undefined) vEMA = vEMA * 0.7 + LEX[w] * 0.3;
+      aEMA = aEMA * 0.82 + (0.28 + Math.abs(vEMA) * 0.5) * 0.18;
+      try { Piano.setValence(vEMA); Piano.setArousal(aEMA); } catch (_) {}
+      word = '';
+    }
+    function render(n) {
+      const shown = text.slice(0, n);
+      if (!shown) { span.textContent = ''; return; }
+      span.innerHTML = esc(shown.slice(0, -1)) + '<span class="lead">' + esc(shown.slice(-1)) + '</span>';
+    }
+    function step() {
+      if (advance) { span.textContent = text; evalWord(); return resolve(); }
+      render(i);
+      keepInView();
+      if (i >= text.length) { span.textContent = text; evalWord(); return resolve(); }
+      const ch = text[i++];
+      if (ch === ' ') { evalWord(); }
+      else { word += ch; try { Piano.tick(ch); } catch (_) {} }
+      let d = PACE.charBase + Math.random() * PACE.charJitter;
+      if (ch === ' ') d *= PACE.spaceMul;
+      if ('.?!'.includes(ch)) d += PACE.sentence;
+      else if (',;'.includes(ch)) d += PACE.comma;
+      setTimeout(step, d);
+    }
+    step();
+  });
+}
+
+/* ─── flower ─── */
+const SEGMENTS = [
+  { sel: '.f-ground', s: 0.00, e: 0.10 },
+  { sel: '.f-stem',   s: 0.08, e: 0.52 },
+  { sel: '.f-leaf1',  s: 0.30, e: 0.48 },
+  { sel: '.f-leaf2',  s: 0.42, e: 0.60 },
+  { sel: '.f-bloom',  s: 0.54, e: 0.93 },
+];
+function initFlower() {
+  document.querySelectorAll('#flower .draw, #flower .f-shoot').forEach(el => {
+    const len = el.getTotalLength();
+    el.dataset.len = len; el.style.strokeDasharray = len; el.style.strokeDashoffset = len;
+  });
+}
+const clamp01 = (x) => Math.max(0, Math.min(1, x));
+function setFlowerProgress(p) {
+  SEGMENTS.forEach(seg => {
+    const el = flower.querySelector(seg.sel); if (!el) return;
+    const local = clamp01((p - seg.s) / (seg.e - seg.s));
+    el.style.strokeDashoffset = (+el.dataset.len) * (1 - local);
+  });
+  if (p >= 0.995) {
+    flower.classList.add('through');
+    const sh = flower.querySelector('.f-shoot'); if (sh) sh.style.strokeDashoffset = 0;
+  }
+}
+
+async function run() {
+  if (running) return; running = true;
+  pulsesArmed = false;
+  skiphint.classList.add('show');
+  for (const para of LETTER) {
+    advance = false;                       // a tap only fills the current paragraph, never the whole letter
+    const p = document.createElement('p');
+    p.className = 'beat' + (para.signature ? ' signature' : '');
+    stage.appendChild(p);
+    for (let k = 0; k < para.segs.length; k++) {
+      const seg = para.segs[k];
+      Piano.setAffect(seg.e, seg.i);
+      try { Piano.setArc(doneSegs / totalSegs); } catch (_) {}
+      setAura(seg.e);
+      if (seg.dry) flower.classList.add('drying');
+      if (seg.cue) setTimeout(() => Piano.cue(seg.cue), 220);
+      if (k > 0) p.appendChild(document.createTextNode(' '));
+      const span = document.createElement('span');
+      span.className = 'seg' + (seg.accent ? ' accent' : '');
+      span.style.color = seg.accent ? COLOR.awe : COLOR[seg.e];
+      p.appendChild(span);
+      p.appendChild(cursor);
+      await typeSegment(span, seg.t);
+      doneSegs++;
+      setFlowerProgress(doneSegs / totalSegs);
+      if (!pulsesArmed && doneSegs / totalSegs >= 0.34) pulsesArmed = true;  // pulses begin ~1/3 in
+      if (seg.through) setFlowerProgress(1);
+    }
+    await sleep(para.breath);
+  }
+  endExperience();
+}
+
+function endExperience() {
+  running = false;
+  cursor.classList.add('gone');
+  skiphint.classList.remove('show');
+  setFlowerProgress(1);
+  try { Piano.settle(); } catch (_) {}
+  setTimeout(() => controls.classList.add('show'), 1500);
+}
+
+function advanceParagraph() { if (running) advance = true; }
+
+function startExperience() {
+  if (started) return; started = true;
+  gate.classList.add('lifting');
+  try { Piano.begin(); Piano.setNoteListener(spawnPulse); } catch (_) {}
+  initFlower();
+  setTimeout(run, 800);
+}
+
+gate.addEventListener('click', startExperience);
+gate.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') startExperience(); });
+window.addEventListener('keydown', (e) => { if (started && !e.metaKey && !e.ctrlKey && !e.altKey) advanceParagraph(); });
+stage.addEventListener('click', () => { if (started) advanceParagraph(); });
+
+document.getElementById('replay').addEventListener('click', () => {
+  stage.innerHTML = ''; advance = false; running = false; doneSegs = 0; vEMA = 0.1; aEMA = 0.25;
+  cursor.classList.remove('gone');
+  flower.classList.remove('drying', 'through');
+  controls.classList.remove('show');
+  setAura('neutral');
+  initFlower();
+  pond.innerHTML = ''; pulsesArmed = false;
+  try { Piano.restart(); Piano.setNoteListener(spawnPulse); } catch (_) {}
+  run();
+});
+
+window.addEventListener('load', initFlower);
+
+/* preview only: ?auto bypasses the gate so the reveal can be screenshotted */
+if (location.search.indexOf('auto') >= 0)
+  window.addEventListener('load', () => setTimeout(startExperience, 400));
+
+/* preview only: ?still renders the whole letter in its final state (no typing/audio/scroll) */
+function renderStill() {
+  document.body.classList.add('still');
+  gate.classList.add('lifting');
+  initFlower();
+  for (const para of LETTER) {
+    const p = document.createElement('p');
+    p.className = 'beat' + (para.signature ? ' signature' : '');
+    para.segs.forEach((seg, k) => {
+      if (k > 0) p.appendChild(document.createTextNode(' '));
+      const span = document.createElement('span');
+      span.className = 'seg' + (seg.accent ? ' accent' : '');
+      span.style.color = seg.accent ? COLOR.awe : COLOR[seg.e];
+      span.textContent = seg.t;
+      p.appendChild(span);
+    });
+    stage.appendChild(p);
+  }
+  flower.classList.add('drying');
+  setFlowerProgress(1);
+  setAura('hope');
+}
+if (location.search.indexOf('still') >= 0)
+  window.addEventListener('load', () => setTimeout(renderStill, 150));
+
+/* preview only: ?pulses renders the still + arms a few pulses to inspect the pond */
+if (location.search.indexOf('pulses') >= 0)
+  window.addEventListener('load', () => {
+    renderStill(); pulsesArmed = true;
+    for (let i = 0; i < 4; i++)
+      setTimeout(() => { lastPulse = 0; spawnPulse(); }, i * 1500);
+  });
+</script>
+</body>
+</html>
